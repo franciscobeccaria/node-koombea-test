@@ -2,6 +2,11 @@ const API = 'http://localhost:3000';
 const authEl = document.getElementById('auth');
 const dashboardEl = document.getElementById('dashboard');
 
+// State
+let currentPage = 1;
+let currentPageSize = 20;
+
+// Auth Functions
 function showAuth() {
   authEl.style.display = 'block';
   dashboardEl.style.display = 'none';
@@ -12,9 +17,10 @@ function showDashboard() {
   document.getElementById('userName').textContent = user.email.split('@')[0];
   authEl.style.display = 'none';
   dashboardEl.style.display = 'block';
+  loadPages(1);
 }
 
-// Login: POST /auth/login
+// Login
 document.getElementById('loginBtn').onclick = async () => {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
@@ -29,7 +35,6 @@ document.getElementById('loginBtn').onclick = async () => {
 
     if (!res.ok) throw new Error(data.message);
 
-    // Guardar tokens en localStorage
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -39,7 +44,7 @@ document.getElementById('loginBtn').onclick = async () => {
   }
 };
 
-// Register: POST /auth/register
+// Register
 document.getElementById('registerBtn').onclick = async () => {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
@@ -54,7 +59,6 @@ document.getElementById('registerBtn').onclick = async () => {
 
     if (!res.ok) throw new Error(data.message);
 
-    // Guardar tokens y user info
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -64,7 +68,7 @@ document.getElementById('registerBtn').onclick = async () => {
   }
 };
 
-// Create page: POST /pages
+// Create Page
 document.getElementById('createPageBtn').onclick = async () => {
   const url = document.getElementById('pageUrl').value;
   const token = localStorage.getItem('accessToken');
@@ -84,98 +88,81 @@ document.getElementById('createPageBtn').onclick = async () => {
 
     document.getElementById('pageUrl').value = '';
     document.getElementById('createError').textContent = '';
-    loadPages(token);
-    alert(`Page created! ID: ${data.id}, Links found: ${data.linkCount}`);
+    currentPage = 1;
+    loadPages(1);
   } catch (err) {
     document.getElementById('createError').textContent = err.message;
   }
 };
 
-// List pages: GET /pages
-const loadPages = async (token) => {
+// Load Pages
+const loadPages = async (page = 1) => {
+  currentPage = page;
+  const token = localStorage.getItem('accessToken');
+  const offset = (page - 1) * currentPageSize;
+
   try {
-    const res = await fetch(`${API}/pages`, {
+    const res = await fetch(`${API}/pages?limit=${currentPageSize}&offset=${offset}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
 
-    const html = data.data.map(page => `
-      <div style="border:1px solid #ddd; padding:10px; margin:5px 0;">
-        <p><strong>${page.title}</strong></p>
-        <p>${page.url}</p>
-        <p>Links: ${page.linkCount} | Created: ${new Date(page.createdAt).toLocaleDateString()}</p>
-      </div>
-    `).join('');
-
-    document.getElementById('pagesList').innerHTML = html || '<p>No pages found</p>';
+    renderPagesTable(data.data);
+    renderPagesPagination(data.pagination.total, page);
   } catch (err) {
-    document.getElementById('pagesList').innerHTML = `<p style="color:red;">${err.message}</p>`;
+    document.getElementById('pagesTableBody').innerHTML = `<tr><td colspan="2" style="color:red;">${err.message}</td></tr>`;
   }
 };
 
-// Get page detail: GET /pages/:id
-document.getElementById('getPageBtn').onclick = async () => {
-  const pageId = document.getElementById('pageId').value;
-  const token = localStorage.getItem('accessToken');
+const renderPagesTable = (pages) => {
+  const tbody = document.getElementById('pagesTableBody');
 
-  if (!pageId) {
-    document.getElementById('pageDetails').textContent = 'Enter a page ID';
+  if (pages.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2">No pages found</td></tr>';
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/pages/${pageId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message);
-
-    document.getElementById('pageDetails').innerHTML = `
-      <p><strong>ID:</strong> ${data.id}</p>
-      <p><strong>URL:</strong> ${data.url}</p>
-      <p><strong>Title:</strong> ${data.title}</p>
-      <p><strong>Links:</strong> ${data.linkCount}</p>
-    `;
-  } catch (err) {
-    document.getElementById('pageDetails').textContent = `Error: ${err.message}`;
-  }
+  tbody.innerHTML = pages.map(page => `
+    <tr onclick="window.location.href='/page/${page.id}'" style="cursor:pointer;">
+      <td>${page.title}</td>
+      <td>${page.linkCount}</td>
+    </tr>
+  `).join('');
 };
 
-// Get page links: GET /pages/:id/links
-document.getElementById('getLinksBtn').onclick = async () => {
-  const pageId = document.getElementById('linksPageId').value;
-  const token = localStorage.getItem('accessToken');
+const renderPagesPagination = (total, currentPageNum) => {
+  const totalPages = Math.ceil(total / currentPageSize);
+  const paginationEl = document.getElementById('pagesPagination');
 
-  if (!pageId) {
-    document.getElementById('linksList').textContent = 'Enter a page ID';
+  if (totalPages <= 1) {
+    paginationEl.innerHTML = '';
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/pages/${pageId}/links`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
+  let html = '<button onclick="previousPage()" ' + (currentPageNum === 1 ? 'disabled' : '') + '>Previous</button>';
 
-    if (!res.ok) throw new Error(data.message);
-
-    const html = data.data.map(link => `
-      <div style="border:1px solid #eee; padding:8px; margin:5px 0;">
-        <p><a href="${link.href}" target="_blank">${link.text || 'No text'}</a></p>
-        <p style="font-size:12px; color:#666;">${link.href}</p>
-      </div>
-    `).join('');
-
-    document.getElementById('linksList').innerHTML = html || '<p>No links found</p>';
-  } catch (err) {
-    document.getElementById('linksList').innerHTML = `<p style="color:red;">${err.message}</p>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button onclick="loadPages(${i})" class="${i === currentPageNum ? 'active' : ''}">${i}</button>`;
   }
+
+  html += '<button onclick="nextPage()" ' + (currentPageNum === totalPages ? 'disabled' : '') + '>Next</button>';
+
+  paginationEl.innerHTML = html;
 };
 
-// Logout: limpiar localStorage y volver a auth
+function previousPage() {
+  if (currentPage > 1) {
+    loadPages(currentPage - 1);
+  }
+}
+
+function nextPage() {
+  loadPages(currentPage + 1);
+}
+
+// Logout
 document.getElementById('logoutBtn').onclick = () => {
   localStorage.clear();
   document.getElementById('email').value = '';
@@ -184,10 +171,9 @@ document.getElementById('logoutBtn').onclick = () => {
   showAuth();
 };
 
-// Check si ya hay sesión activa
+// Initialize
 if (localStorage.getItem('accessToken')) {
   showDashboard();
-  loadPages(localStorage.getItem('accessToken'));
 } else {
   showAuth();
 }

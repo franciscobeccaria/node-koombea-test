@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Details - Web Scraper</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <div class="user-info">
+        Welcome, <strong id="userName"></strong>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+      </div>
+    </div>
+
+    <div class="view">
+      <a href="/" class="back-link">< Back</a>
+      <h2 id="pageTitle"></h2>
+
+      <table class="links-table">
+        <thead>
+          <tr>
+            <th>Link Text</th>
+            <th>URL</th>
+          </tr>
+        </thead>
+        <tbody id="linksTableBody">
+          <tr><td colspan="2">Loading...</td></tr>
+        </tbody>
+      </table>
+
+      <div id="linksPagination" class="pagination"></div>
+    </div>
+  </div>
+
+  <script src="/pages.js"></script>
+</body>
+</html>

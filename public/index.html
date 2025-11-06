@@ -3,46 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Web Scraper API</title>
+  <title>Web Scraper</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div id="auth" style="display:none;">
-    <div class="card">
-      <h2>Web Scraper API</h2>
+  <div id="auth" class="auth-container">
+    <div class="auth-card">
+      <h1>Web Scraper</h1>
       <form id="authForm">
         <input type="email" id="email" placeholder="email@example.com" required>
         <input type="password" id="password" placeholder="password" required>
-        <button type="button" id="loginBtn">Login</button>
-        <button type="button" id="registerBtn">Register</button>
+        <div class="button-group">
+          <button type="button" id="loginBtn">Login</button>
+          <button type="button" id="registerBtn">Register</button>
+        </div>
       </form>
       <p id="authError" class="error"></p>
     </div>
   </div>
 
-  <div id="dashboard" style="display:none;">
-    <div class="card">
-      <h2>Welcome, <span id="userName"></span></h2>
+  <div id="dashboard" class="dashboard-container" style="display:none;">
+    <div class="dashboard-header">
+      <div class="user-info">
+        Welcome, <strong id="userName"></strong>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+      </div>
+    </div>
 
-      <h3>Create Page</h3>
-      <input type="url" id="pageUrl" placeholder="https://example.com" required>
-      <button id="createPageBtn">Create & Scrape</button>
+    <div class="view">
+      <div class="search-section">
+        <input type="url" id="pageUrl" placeholder="Add new page" required>
+        <button id="createPageBtn">Scrape</button>
+      </div>
       <p id="createError" class="error"></p>
 
-      <h3>Your Pages</h3>
-      <div id="pagesList"></div>
+      <table class="pages-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Total links</th>
+          </tr>
+        </thead>
+        <tbody id="pagesTableBody">
+          <tr><td colspan="2">Loading...</td></tr>
+        </tbody>
+      </table>
 
-      <h3>Page Details</h3>
-      <input type="number" id="pageId" placeholder="Page ID" min="1">
-      <button id="getPageBtn">Get Page</button>
-      <p id="pageDetails"></p>
-
-      <h3>Page Links</h3>
-      <input type="number" id="linksPageId" placeholder="Page ID" min="1">
-      <button id="getLinksBtn">Get Links</button>
-      <div id="linksList"></div>
-
-      <button id="logoutBtn">Logout</button>
+      <div id="pagesPagination" class="pagination"></div>
     </div>
   </div>
 

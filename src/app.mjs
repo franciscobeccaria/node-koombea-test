@@ -1,8 +1,11 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import errorHandler from './middlewares/error.mjs';
 import authRoutes from './routes/auth.routes.mjs';
 import pagesRoutes from './routes/pages.routes.mjs';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // Middlewares
@@ -30,6 +33,11 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/auth', authRoutes);
 app.use('/pages', pagesRoutes);
+
+// HTML page routes (serve pages.html for /page/:id)
+app.get('/page/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/pages.html'));
+});
 
 // 404 handler
 app.use((req, res) => {
