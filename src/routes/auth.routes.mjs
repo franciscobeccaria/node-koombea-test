@@ -1,14 +1,9 @@
 import express from 'express';
+import * as authController from '../controllers/auth.controller.mjs';
 
 const router = express.Router();
 
-// Smoke test endpoint
-router.post('/register', (req, res) => {
-  res.status(200).json({ message: 'Auth register endpoint (smoke test)' });
-});
-
-router.post('/login', (req, res) => {
-  res.status(200).json({ message: 'Auth login endpoint (smoke test)' });
-});
+router.post('/register', authController.register);
+router.post('/login', authController.login);
 
 export default router;

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Scraper API</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="auth" style="display:none;">
+    <div class="card">
+      <h2>Web Scraper API</h2>
+      <form id="authForm">
+        <input type="email" id="email" placeholder="email@example.com" required>
+        <input type="password" id="password" placeholder="password" required>
+        <button type="button" id="loginBtn">Login</button>
+        <button type="button" id="registerBtn">Register</button>
+      </form>
+      <p id="authError" class="error"></p>
+    </div>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <div class="card">
+      <h2>Welcome, <span id="userName"></span></h2>
+      <p><strong>Access Token:</strong></p>
+      <code id="accessToken"></code>
+      <p><strong>Refresh Token:</strong></p>
+      <code id="refreshToken"></code>
+      <button id="testBtn">Test Protected Route</button>
+      <p id="testResult"></p>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
