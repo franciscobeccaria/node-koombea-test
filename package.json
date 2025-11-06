@@ -1,0 +1,30 @@
+{
+  "name": "koombea-test",
+  "version": "1.0.0",
+  "description": "Technical test - web scraper API with authentication",
+  "type": "module",
+  "main": "src/server.mjs",
+  "scripts": {
+    "dev": "node --watch src/server.mjs",
+    "start": "node src/server.mjs",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Koombea",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^8.5.1",
+    "bcryptjs": "^2.4.3",
+    "undici": "^6.10.1",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.7.0",
+    "@types/node": "^20.10.5"
+  }
+}
