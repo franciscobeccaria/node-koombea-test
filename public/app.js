@@ -10,8 +10,6 @@ function showAuth() {
 function showDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
   document.getElementById('userName').textContent = user.email.split('@')[0];
-  document.getElementById('accessToken').textContent = localStorage.getItem('accessToken');
-  document.getElementById('refreshToken').textContent = localStorage.getItem('refreshToken');
   authEl.style.display = 'none';
   dashboardEl.style.display = 'block';
 }
@@ -66,10 +64,35 @@ document.getElementById('registerBtn').onclick = async () => {
   }
 };
 
-// Test Protected Route: GET /pages con token
-document.getElementById('testBtn').onclick = async () => {
+// Create page: POST /pages
+document.getElementById('createPageBtn').onclick = async () => {
+  const url = document.getElementById('pageUrl').value;
   const token = localStorage.getItem('accessToken');
 
+  try {
+    const res = await fetch(`${API}/pages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    document.getElementById('pageUrl').value = '';
+    document.getElementById('createError').textContent = '';
+    loadPages(token);
+    alert(`Page created! ID: ${data.id}, Links found: ${data.linkCount}`);
+  } catch (err) {
+    document.getElementById('createError').textContent = err.message;
+  }
+};
+
+// List pages: GET /pages
+const loadPages = async (token) => {
   try {
     const res = await fetch(`${API}/pages`, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -78,9 +101,77 @@ document.getElementById('testBtn').onclick = async () => {
 
     if (!res.ok) throw new Error(data.message);
 
-    document.getElementById('testResult').textContent = JSON.stringify(data, null, 2);
+    const html = data.data.map(page => `
+      <div style="border:1px solid #ddd; padding:10px; margin:5px 0;">
+        <p><strong>${page.title}</strong></p>
+        <p>${page.url}</p>
+        <p>Links: ${page.linkCount} | Created: ${new Date(page.createdAt).toLocaleDateString()}</p>
+      </div>
+    `).join('');
+
+    document.getElementById('pagesList').innerHTML = html || '<p>No pages found</p>';
   } catch (err) {
-    document.getElementById('testResult').textContent = `Error: ${err.message}`;
+    document.getElementById('pagesList').innerHTML = `<p style="color:red;">${err.message}</p>`;
+  }
+};
+
+// Get page detail: GET /pages/:id
+document.getElementById('getPageBtn').onclick = async () => {
+  const pageId = document.getElementById('pageId').value;
+  const token = localStorage.getItem('accessToken');
+
+  if (!pageId) {
+    document.getElementById('pageDetails').textContent = 'Enter a page ID';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/pages/${pageId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    document.getElementById('pageDetails').innerHTML = `
+      <p><strong>ID:</strong> ${data.id}</p>
+      <p><strong>URL:</strong> ${data.url}</p>
+      <p><strong>Title:</strong> ${data.title}</p>
+      <p><strong>Links:</strong> ${data.linkCount}</p>
+    `;
+  } catch (err) {
+    document.getElementById('pageDetails').textContent = `Error: ${err.message}`;
+  }
+};
+
+// Get page links: GET /pages/:id/links
+document.getElementById('getLinksBtn').onclick = async () => {
+  const pageId = document.getElementById('linksPageId').value;
+  const token = localStorage.getItem('accessToken');
+
+  if (!pageId) {
+    document.getElementById('linksList').textContent = 'Enter a page ID';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/pages/${pageId}/links`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    const html = data.data.map(link => `
+      <div style="border:1px solid #eee; padding:8px; margin:5px 0;">
+        <p><a href="${link.href}" target="_blank">${link.text || 'No text'}</a></p>
+        <p style="font-size:12px; color:#666;">${link.href}</p>
+      </div>
+    `).join('');
+
+    document.getElementById('linksList').innerHTML = html || '<p>No links found</p>';
+  } catch (err) {
+    document.getElementById('linksList').innerHTML = `<p style="color:red;">${err.message}</p>`;
   }
 };
 
@@ -96,6 +187,7 @@ document.getElementById('logoutBtn').onclick = () => {
 // Check si ya hay sesión activa
 if (localStorage.getItem('accessToken')) {
   showDashboard();
+  loadPages(localStorage.getItem('accessToken'));
 } else {
   showAuth();
 }

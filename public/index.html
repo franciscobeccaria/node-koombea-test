@@ -23,12 +23,25 @@
   <div id="dashboard" style="display:none;">
     <div class="card">
       <h2>Welcome, <span id="userName"></span></h2>
-      <p><strong>Access Token:</strong></p>
-      <code id="accessToken"></code>
-      <p><strong>Refresh Token:</strong></p>
-      <code id="refreshToken"></code>
-      <button id="testBtn">Test Protected Route</button>
-      <p id="testResult"></p>
+
+      <h3>Create Page</h3>
+      <input type="url" id="pageUrl" placeholder="https://example.com" required>
+      <button id="createPageBtn">Create & Scrape</button>
+      <p id="createError" class="error"></p>
+
+      <h3>Your Pages</h3>
+      <div id="pagesList"></div>
+
+      <h3>Page Details</h3>
+      <input type="number" id="pageId" placeholder="Page ID" min="1">
+      <button id="getPageBtn">Get Page</button>
+      <p id="pageDetails"></p>
+
+      <h3>Page Links</h3>
+      <input type="number" id="linksPageId" placeholder="Page ID" min="1">
+      <button id="getLinksBtn">Get Links</button>
+      <div id="linksList"></div>
+
       <button id="logoutBtn">Logout</button>
     </div>
   </div>

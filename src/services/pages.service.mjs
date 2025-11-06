@@ -1,0 +1,89 @@
+import { scrapeUrl } from '../utils/scraper.mjs';
+import * as pagesRepository from '../repositories/pages.repository.mjs';
+
+export const createPageAndScrapeInline = async (url, userId) => {
+  if (!url) {
+    const error = new Error('URL is required');
+    error.status = 400;
+    throw error;
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+  } catch {
+    const error = new Error('Invalid URL format');
+    error.status = 400;
+    throw error;
+  }
+
+  // Scrape the URL
+  const scrapedData = await scrapeUrl(url);
+
+  // Create page in DB
+  const page = await pagesRepository.createPage(userId, url, scrapedData.title);
+
+  // Create links in DB
+  if (scrapedData.links.length > 0) {
+    await pagesRepository.createManyLinks(page.id, scrapedData.links);
+    await pagesRepository.updatePageLinkCount(page.id, scrapedData.links.length);
+  }
+
+  return {
+    id: page.id,
+    url: page.url,
+    title: page.title,
+    linkCount: scrapedData.links.length,
+    links: scrapedData.links,
+    createdAt: page.createdAt,
+  };
+};
+
+export const listPages = async (userId, limit, offset) => {
+  const pages = await pagesRepository.findPagesByUser(userId, limit, offset);
+  const total = await pagesRepository.countPagesByUser(userId);
+
+  return {
+    data: pages,
+    pagination: {
+      limit,
+      offset,
+      total,
+    },
+  };
+};
+
+export const getPage = async (id, userId) => {
+  const page = await pagesRepository.findPageById(id, userId);
+
+  if (!page) {
+    const error = new Error('Page not found');
+    error.status = 404;
+    throw error;
+  }
+
+  return page;
+};
+
+export const listLinks = async (pageId, userId, limit, offset) => {
+  // Verify page belongs to user
+  const page = await pagesRepository.findPageById(pageId, userId);
+
+  if (!page) {
+    const error = new Error('Page not found');
+    error.status = 404;
+    throw error;
+  }
+
+  const links = await pagesRepository.findLinksByPage(pageId, limit, offset);
+  const total = await pagesRepository.countLinksByPage(pageId);
+
+  return {
+    data: links,
+    pagination: {
+      limit,
+      offset,
+      total,
+    },
+  };
+};
