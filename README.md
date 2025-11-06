@@ -8,44 +8,85 @@ A Node.js REST API for web scraping and user authentication. Extract links and p
 - Web scraping with timeout and deduplication
 - Link extraction from HTML pages
 - Paginated listing of pages and links
-- SQLite for local development
+- PostgreSQL database (containerized with Docker)
 
 ## Tech Stack
 
 - **Runtime:** Node.js (ESM)
 - **Framework:** Express.js
-- **Database:** Prisma + SQLite
+- **Database:** Prisma + PostgreSQL
+- **Containerization:** Docker + Docker Compose (required)
 - **Auth:** JWT (access + refresh tokens)
 - **Scraping:** undici + cheerio
 - **Password:** bcryptjs
 
+## Prerequisites
+
+This project uses **Docker and Docker Compose** for all development and deployment:
+
+- **Docker**
+- **Docker Compose**
+
 ## Quick Start
 
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-
-### Installation
+Clone the repository and start the application with Docker:
 
 ```bash
-# Clone/download the repo
-cd node-koombea-test
+# Start the entire stack (app + PostgreSQL)
+docker-compose up
 
-# Install dependencies
-npm install
+# In another terminal, run database migrations (first time only)
+docker exec koombea_app npm run prisma:migrate
 
-# Copy environment variables
-cp .env.example .env
-
-# Run migrations (already done in setup)
-npm run prisma:generate
-
-# Start development server
-npm run dev
+# The API will be available at http://localhost:3000
 ```
 
-The API will be available at `http://localhost:3000`
+That's it! The application will be fully running with PostgreSQL ready to use.
+
+## Useful Docker Commands
+
+```bash
+# Start in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+docker-compose logs -f postgres
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes (clears database)
+docker-compose down -v
+
+# Rebuild image (after dependency changes)
+docker-compose build --no-cache
+
+# Run migrations manually
+docker exec koombea_app npm run prisma:migrate
+
+# Generate Prisma client
+docker exec koombea_app npm run prisma:generate
+```
+
+## Production Deployment
+
+The `Dockerfile` provides a multi-stage build optimized for production:
+
+```bash
+# Build the image
+docker build -t koombea-app:latest .
+
+# Run with PostgreSQL (requires external PostgreSQL instance)
+docker run \
+  -e DATABASE_URL="postgresql://user:password@postgres_host:5432/db_name" \
+  -e JWT_SECRET="your-production-secret" \
+  -e JWT_REFRESH_SECRET="your-production-refresh-secret" \
+  -p 3000:3000 \
+  koombea-app:latest
+```
+
+Or use docker-compose with environment overrides for production.
 
 ## API Endpoints
 
@@ -150,4 +191,4 @@ npm run prisma:generate
 - Rate limiting
 - Advanced validation (Zod)
 - Comprehensive testing (Jest)
-- Docker support
+- Kubernetes deployment configuration

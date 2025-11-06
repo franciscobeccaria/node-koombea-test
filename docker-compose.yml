@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: koombea_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-koombea_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persist database data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - koombea_network
+
+  # Express Application Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: koombea_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Node environment
+      NODE_ENV: development
+      PORT: 3000
+
+      # Database configuration (PostgreSQL for Docker)
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-koombea_dev}
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-key-change-in-production}
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./prisma:/app/prisma
+      # Exclude node_modules from bind mount
+      - /app/node_modules
+
+    command: npm run dev
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    networks:
+      - koombea_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  koombea_network:
+    driver: bridge
