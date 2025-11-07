@@ -22,7 +22,6 @@ const parseRedisUrl = () => {
 
 const redisConnection = parseRedisUrl();
 
-// Initialize queue
 export const scraperQueue = new Queue('scraping', {
   connection: redisConnection,
   defaultJobOptions: {
@@ -35,20 +34,15 @@ export const scraperQueue = new Queue('scraping', {
   },
 });
 
-// Initialize worker
 export const scraperWorker = new Worker(
   'scraping',
   async (job) => {
     const { pageId, userId, url } = job.data;
 
     try {
-      // Scrape the URL
       const scrapedData = await scraperUtil.scrapeUrl(url);
-
-      // Update page with title and status to completed
       await pagesRepository.updatePageTitleAndStatus(pageId, scrapedData.title, 'completed');
 
-      // Store links in database
       if (scrapedData.links && scrapedData.links.length > 0) {
         await pagesRepository.createManyLinks(pageId, scrapedData.links);
         await pagesRepository.updatePageLinkCount(pageId, scrapedData.links.length);
@@ -61,9 +55,7 @@ export const scraperWorker = new Worker(
         linksCount: scrapedData.links?.length || 0,
       };
     } catch (error) {
-      // Update page title and status to failed
       try {
-        // Extract domain from URL for the title
         const urlObj = new URL(url);
         const domain = urlObj.hostname;
         await pagesRepository.updatePageTitleAndStatus(pageId, `${domain} (Failed)`, 'failed');
@@ -79,7 +71,6 @@ export const scraperWorker = new Worker(
   }
 );
 
-// Event handlers
 scraperWorker.on('completed', (job) => {
   console.log(`Job ${job.id} completed successfully`);
 });
@@ -88,7 +79,6 @@ scraperWorker.on('failed', (job, err) => {
   console.error(`Job ${job.id} failed:`, err.message);
 });
 
-// Add job to queue
 export const enqueueScrapeJob = async (pageId, userId, url) => {
   const job = await scraperQueue.add(
     'scrape',
@@ -100,7 +90,6 @@ export const enqueueScrapeJob = async (pageId, userId, url) => {
   return job;
 };
 
-// Get job status
 export const getJobStatus = async (jobId) => {
   const job = await scraperQueue.getJob(jobId);
   if (!job) return null;
@@ -117,7 +106,6 @@ export const getJobStatus = async (jobId) => {
   };
 };
 
-// Close connections gracefully
 export const closeQueue = async () => {
   await scraperQueue.close();
   await scraperWorker.close();

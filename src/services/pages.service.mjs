@@ -9,7 +9,6 @@ export const createPageWithAsyncScrape = async (url, userId) => {
     throw error;
   }
 
-  // Validate URL format
   try {
     new URL(url);
   } catch {
@@ -21,12 +20,10 @@ export const createPageWithAsyncScrape = async (url, userId) => {
   // Create page in DB with empty title (will be updated after scraping)
   const page = await pagesRepository.createPage(userId, url, 'Processing...');
 
-  // Enqueue scraping job
   try {
     await enqueueScrapeJob(page.id, userId, url);
   } catch (error) {
     console.error('Failed to enqueue scrape job:', error);
-    // Job enqueueing failed, but page was created. Log and return page anyway.
   }
 
   return {
@@ -66,7 +63,6 @@ export const getPage = async (id, userId) => {
 };
 
 export const listLinks = async (pageId, userId, limit, offset) => {
-  // Verify page belongs to user
   const page = await pagesRepository.findPageById(pageId, userId);
 
   if (!page) {

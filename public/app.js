@@ -32,15 +32,13 @@ document.getElementById('loginBtn').onclick = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
-    }, showAuth, false);  // Don't refresh on auth endpoint
+    }, showAuth, false);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
 
-    // Store only user data, tokens are in httpOnly cookies
     localStorage.setItem('user', JSON.stringify(data.user));
     document.getElementById('authError').textContent = '';
-    // Start automatic token refresh
     startTokenRefreshInterval();
     showDashboard();
   } catch (err) {
@@ -58,15 +56,13 @@ document.getElementById('registerBtn').onclick = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
-    }, showAuth, false);  // Don't refresh on auth endpoint
+    }, showAuth, false);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
 
-    // Store only user data, tokens are in httpOnly cookies
     localStorage.setItem('user', JSON.stringify(data.user));
     document.getElementById('authError').textContent = '';
-    // Start automatic token refresh
     startTokenRefreshInterval();
     showDashboard();
   } catch (err) {
@@ -126,7 +122,6 @@ const renderPagesTable = (pages) => {
     return;
   }
 
-  // Check if any page is processing
   hasProcessingPages = pages.some(page => page.status === 'processing');
 
   tbody.innerHTML = pages.map(page => {
@@ -141,7 +136,6 @@ const renderPagesTable = (pages) => {
   `;
   }).join('');
 
-  // Setup auto-refresh if pages are processing
   startPagesAutoRefresh();
 };
 
@@ -178,7 +172,6 @@ function nextPage() {
 // Logout
 document.getElementById('logoutBtn').onclick = async () => {
   try {
-    // Call logout endpoint to clear server-side cookies
     await apiFetch(`${API}/auth/logout`, {
       method: 'POST',
     }, showAuth);
@@ -186,11 +179,8 @@ document.getElementById('logoutBtn').onclick = async () => {
     console.error('Logout error:', err);
   }
 
-  // Stop automatic token refresh
   stopTokenRefreshInterval();
-  // Stop pages auto-refresh
   stopPagesAutoRefresh();
-  // Clear client-side data
   localStorage.clear();
   document.getElementById('username').value = '';
   document.getElementById('password').value = '';
@@ -200,17 +190,15 @@ document.getElementById('logoutBtn').onclick = async () => {
 
 // Auto-refresh for processing pages
 function startPagesAutoRefresh() {
-  // Clear existing interval
   if (autoRefreshInterval) {
     clearInterval(autoRefreshInterval);
     autoRefreshInterval = null;
   }
 
-  // Only set up interval if there are processing pages
   if (hasProcessingPages) {
     autoRefreshInterval = setInterval(() => {
       loadPages(currentPage);
-    }, 3000); // Refresh every 3 seconds
+    }, 3000);
   }
 }
 

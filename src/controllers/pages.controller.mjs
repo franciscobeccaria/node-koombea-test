@@ -19,7 +19,6 @@ export const listPages = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 20;
     let offset = parseInt(req.query.offset) || 0;
 
-    // Validate pagination
     if (limit < 1 || limit > 100) limit = 20;
     if (offset < 0) offset = 0;
 
@@ -58,7 +57,6 @@ export const listLinks = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 20;
     let offset = parseInt(req.query.offset) || 0;
 
-    // Validate pagination
     if (limit < 1 || limit > 100) limit = 20;
     if (offset < 0) offset = 0;
 

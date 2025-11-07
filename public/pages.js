@@ -9,10 +9,8 @@ let currentLinksPage = 1;
 let currentLinkSize = 20;
 let allLinksData = [];
 
-// Check if user is logged in by checking if user data exists
 const user = JSON.parse(localStorage.getItem('user'));
 if (!user || !user.username) {
-  // If not logged in locally, try to verify with the API
   apiFetch(`${API}/pages`, {}, () => {
     localStorage.clear();
     window.location.href = '/';
@@ -27,7 +25,6 @@ if (!user || !user.username) {
       window.location.href = '/';
     });
 } else {
-  // Display username
   document.getElementById('userName').textContent = user.username;
 }
 
@@ -138,7 +135,6 @@ function nextLinksPage() {
 // Logout
 document.getElementById('logoutBtn').onclick = async () => {
   try {
-    // Call logout endpoint to clear server-side cookies
     await apiFetch(`${API}/auth/logout`, {
       method: 'POST',
     }, () => window.location.href = '/');
@@ -146,16 +142,13 @@ document.getElementById('logoutBtn').onclick = async () => {
     console.error('Logout error:', err);
   }
 
-  // Stop automatic token refresh
   stopTokenRefreshInterval();
-  // Clear client-side data
   localStorage.clear();
   window.location.href = '/';
 };
 
 // Initialize
 if (user && user.username) {
-  // Start automatic token refresh
   startTokenRefreshInterval();
   loadPageDetail();
 }

@@ -9,10 +9,8 @@ const server = app.listen(PORT, () => {
   console.log(`Environment: ${ENV.NODE_ENV}`);
 });
 
-// Initialize scraper worker
 console.log('Initializing scraper worker...');
 
-// Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
   server.close(async () => {
