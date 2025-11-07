@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 import ENV from '../utils/env.mjs';
 import * as authRepository from '../repositories/auth.repository.mjs';
 
-export const registerUser = async (email, password) => {
-  if (!email || !password) {
-    const error = new Error('Email and password are required');
+export const registerUser = async (username, password) => {
+  if (!username || !password) {
+    const error = new Error('Username and password are required');
     error.status = 400;
     throw error;
   }
@@ -16,7 +16,7 @@ export const registerUser = async (email, password) => {
     throw error;
   }
 
-  const existingUser = await authRepository.findUserByEmail(email);
+  const existingUser = await authRepository.findUserByUsername(username);
   if (existingUser) {
     const error = new Error('User already exists');
     error.status = 409;
@@ -24,7 +24,7 @@ export const registerUser = async (email, password) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await authRepository.createUser(email, hashedPassword);
+  const user = await authRepository.createUser(username, hashedPassword);
 
   return {
     user,
@@ -33,14 +33,14 @@ export const registerUser = async (email, password) => {
   };
 };
 
-export const loginUser = async (email, password) => {
-  if (!email || !password) {
-    const error = new Error('Email and password are required');
+export const loginUser = async (username, password) => {
+  if (!username || !password) {
+    const error = new Error('Username and password are required');
     error.status = 400;
     throw error;
   }
 
-  const user = await authRepository.findUserByEmail(email);
+  const user = await authRepository.findUserByUsername(username);
   if (!user) {
     const error = new Error('Invalid credentials');
     error.status = 401;

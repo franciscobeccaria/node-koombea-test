@@ -15,7 +15,7 @@ describe('API Integration Tests', () => {
 
   describe('Auth Routes - Input Validation', () => {
     describe('POST /auth/register', () => {
-      it('should return 400 if email is missing', async () => {
+      it('should return 400 if username is missing', async () => {
         const response = await request(app).post('/auth/register').send({
           password: 'password123',
         });
@@ -26,7 +26,7 @@ describe('API Integration Tests', () => {
 
       it('should return 400 if password is missing', async () => {
         const response = await request(app).post('/auth/register').send({
-          email: 'test@example.com',
+          username: 'testuser',
         });
 
         expect(response.status).toBe(400);
@@ -35,7 +35,7 @@ describe('API Integration Tests', () => {
 
       it('should return 400 if password is less than 6 characters', async () => {
         const response = await request(app).post('/auth/register').send({
-          email: 'test@example.com',
+          username: 'testuser',
           password: 'pass',
         });
 
@@ -45,7 +45,7 @@ describe('API Integration Tests', () => {
 
       it('should accept valid register request format', async () => {
         const response = await request(app).post('/auth/register').send({
-          email: 'newuser@example.com',
+          username: 'newuser',
           password: 'password123',
         });
 
@@ -55,7 +55,7 @@ describe('API Integration Tests', () => {
     });
 
     describe('POST /auth/login', () => {
-      it('should return 400 if email is missing', async () => {
+      it('should return 400 if username is missing', async () => {
         const response = await request(app).post('/auth/login').send({
           password: 'password123',
         });
@@ -66,7 +66,7 @@ describe('API Integration Tests', () => {
 
       it('should return 400 if password is missing', async () => {
         const response = await request(app).post('/auth/login').send({
-          email: 'test@example.com',
+          username: 'testuser',
         });
 
         expect(response.status).toBe(400);
@@ -217,7 +217,7 @@ describe('API Integration Tests', () => {
         .post('/auth/login')
         .set('Content-Type', 'application/json')
         .send({
-          email: 'test@example.com',
+          username: 'testuser',
           password: 'password123',
         });
 
@@ -229,7 +229,7 @@ describe('API Integration Tests', () => {
   describe('Auth Controller - Error Cases', () => {
     it('should handle register endpoint with database error', async () => {
       const response = await request(app).post('/auth/register').send({
-        email: 'test@example.com',
+        username: 'testuser',
         password: 'password123',
       });
 
@@ -240,7 +240,7 @@ describe('API Integration Tests', () => {
 
     it('should handle login endpoint with database error', async () => {
       const response = await request(app).post('/auth/login').send({
-        email: 'test@example.com',
+        username: 'testuser',
         password: 'password123',
       });
 
@@ -298,7 +298,7 @@ describe('API Integration Tests', () => {
         .post('/auth/login')
         .set('Content-Type', 'application/json')
         .send({
-          email: 'test@example.com',
+          username: 'testuser',
           password: 'password123',
         });
 
@@ -310,7 +310,7 @@ describe('API Integration Tests', () => {
       const response = await request(app)
         .post('/auth/register')
         .send({
-          email: 'test@example.com',
+          username: 'testuser',
           password: 'password123',
         });
 

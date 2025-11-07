@@ -14,7 +14,7 @@ function showAuth() {
 
 function showDashboard() {
   const user = JSON.parse(localStorage.getItem('user'));
-  document.getElementById('userName').textContent = user.email.split('@')[0];
+  document.getElementById('userName').textContent = user.username;
   authEl.style.display = 'none';
   dashboardEl.style.display = 'block';
   loadPages(1);
@@ -22,14 +22,14 @@ function showDashboard() {
 
 // Login
 document.getElementById('loginBtn').onclick = async () => {
-  const email = document.getElementById('email').value;
+  const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
   try {
     const res = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ username, password })
     });
     const data = await res.json();
 
@@ -46,14 +46,14 @@ document.getElementById('loginBtn').onclick = async () => {
 
 // Register
 document.getElementById('registerBtn').onclick = async () => {
-  const email = document.getElementById('email').value;
+  const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
   try {
     const res = await fetch(`${API}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ username, password })
     });
     const data = await res.json();
 
@@ -165,7 +165,7 @@ function nextPage() {
 // Logout
 document.getElementById('logoutBtn').onclick = () => {
   localStorage.clear();
-  document.getElementById('email').value = '';
+  document.getElementById('username').value = '';
   document.getElementById('password').value = '';
   document.getElementById('authError').textContent = '';
   showAuth();

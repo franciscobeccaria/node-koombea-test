@@ -16,11 +16,11 @@ if (!localStorage.getItem('accessToken')) {
 
 // Display username
 const user = JSON.parse(localStorage.getItem('user'));
-if (!user || !user.email) {
+if (!user || !user.username) {
   localStorage.clear();
   window.location.href = '/';
 } else {
-  document.getElementById('userName').textContent = user.email.split('@')[0];
+  document.getElementById('userName').textContent = user.username;
 }
 
 // Load page detail

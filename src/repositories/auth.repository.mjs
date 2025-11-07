@@ -1,26 +1,26 @@
 import prisma from '../../db/client.mjs';
 
-export const findUserByEmail = async (email) => {
+export const findUserByUsername = async (username) => {
   return prisma.user.findUnique({
-    where: { email },
+    where: { username },
     select: {
       id: true,
-      email: true,
+      username: true,
       password: true,
       createdAt: true,
     },
   });
 };
 
-export const createUser = async (email, hashedPassword) => {
+export const createUser = async (username, hashedPassword) => {
   return prisma.user.create({
     data: {
-      email,
+      username,
       password: hashedPassword,
     },
     select: {
       id: true,
-      email: true,
+      username: true,
       createdAt: true,
     },
   });
@@ -31,7 +31,7 @@ export const findUserById = async (id) => {
     where: { id },
     select: {
       id: true,
-      email: true,
+      username: true,
       createdAt: true,
     },
   });

@@ -31,18 +31,18 @@ describe('Auth Repository', () => {
     jest.clearAllMocks();
   });
 
-  describe('findUserByEmail', () => {
-    it('should find user by email', async () => {
-      const mockUser = { id: '1', email: 'test@example.com', password: 'hash', createdAt: new Date() };
+  describe('findUserByUsername', () => {
+    it('should find user by username', async () => {
+      const mockUser = { id: '1', username: 'testuser', password: 'hash', createdAt: new Date() };
       prisma.user.findUnique.mockResolvedValue(mockUser);
 
-      const result = await authRepository.findUserByEmail('test@example.com');
+      const result = await authRepository.findUserByUsername('testuser');
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
+        where: { username: 'testuser' },
         select: {
           id: true,
-          email: true,
+          username: true,
           password: true,
           createdAt: true,
         },
@@ -53,7 +53,7 @@ describe('Auth Repository', () => {
     it('should return null if user not found', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      const result = await authRepository.findUserByEmail('nonexistent@example.com');
+      const result = await authRepository.findUserByUsername('nonexistent');
 
       expect(result).toBeNull();
     });
@@ -63,21 +63,21 @@ describe('Auth Repository', () => {
     it('should create new user', async () => {
       const mockUser = {
         id: 'new-id',
-        email: 'newuser@example.com',
+        username: 'newuser',
         createdAt: new Date(),
       };
       prisma.user.create.mockResolvedValue(mockUser);
 
-      const result = await authRepository.createUser('newuser@example.com', 'hashed-password');
+      const result = await authRepository.createUser('newuser', 'hashed-password');
 
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: {
-          email: 'newuser@example.com',
+          username: 'newuser',
           password: 'hashed-password',
         },
         select: {
           id: true,
-          email: true,
+          username: true,
           createdAt: true,
         },
       });
@@ -88,7 +88,7 @@ describe('Auth Repository', () => {
       const error = new Error('Unique constraint failed');
       prisma.user.create.mockRejectedValue(error);
 
-      await expect(authRepository.createUser('existing@example.com', 'password')).rejects.toThrow();
+      await expect(authRepository.createUser('existing', 'password')).rejects.toThrow();
     });
   });
 });

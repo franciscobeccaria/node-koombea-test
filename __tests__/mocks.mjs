@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 // Mock functions for testing
 export const mockUser = {
   id: 'test-user-id',
-  email: 'test@example.com',
+  username: 'testuser',
   password: '$2a$10$mockhashedpassword',
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
@@ -48,7 +48,7 @@ export const mockScrapedData = {
 
 // Create mock functions
 export const createMockAuthRepository = () => ({
-  findUserByEmail: jest.fn(),
+  findUserByUsername: jest.fn(),
   createUser: jest.fn(),
 });
 

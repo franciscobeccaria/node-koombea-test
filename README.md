@@ -97,7 +97,7 @@ Or use docker-compose with environment overrides for production.
 curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "user@example.com",
+    "username": "testuser",
     "password": "password123"
   }'
 
@@ -105,7 +105,7 @@ curl -X POST http://localhost:3000/auth/register \
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "user@example.com",
+    "username": "testuser",
     "password": "password123"
   }'
 
@@ -160,7 +160,7 @@ node-koombea-test/
 
 ## Database Schema
 
-- **User:** id, email (unique), password, timestamps
+- **User:** id, username (unique), password, timestamps
 - **Page:** id, userId (FK), url, title, linkCount, timestamps
 - **Link:** id, pageId (FK), href, text, timestamps (unique on pageId + href)
 

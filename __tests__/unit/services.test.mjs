@@ -13,7 +13,7 @@ jest.unstable_mockModule('../../src/repositories/pages.repository.mjs', () => ({
 }));
 
 jest.unstable_mockModule('../../src/repositories/auth.repository.mjs', () => ({
-  findUserByEmail: jest.fn(),
+  findUserByUsername: jest.fn(),
   findUserById: jest.fn(),
   createUser: jest.fn(),
 }));
@@ -228,20 +228,20 @@ describe('Auth Service', () => {
   });
 
   describe('registerUser - input validation', () => {
-    it('should throw error if email is missing', async () => {
+    it('should throw error if username is missing', async () => {
       await expect(authService.registerUser('', 'password123')).rejects.toThrow(
-        'Email and password are required'
+        'Username and password are required'
       );
     });
 
     it('should throw error if password is missing', async () => {
-      await expect(authService.registerUser('test@example.com', '')).rejects.toThrow(
-        'Email and password are required'
+      await expect(authService.registerUser('testuser', '')).rejects.toThrow(
+        'Username and password are required'
       );
     });
 
     it('should throw error if password is less than 6 characters', async () => {
-      await expect(authService.registerUser('test@example.com', 'pass')).rejects.toThrow(
+      await expect(authService.registerUser('testuser', 'pass')).rejects.toThrow(
         'Password must be at least 6 characters'
       );
     });
@@ -249,9 +249,9 @@ describe('Auth Service', () => {
 
   describe('registerUser - user already exists', () => {
     it('should throw error if user already exists', async () => {
-      authRepository.findUserByEmail.mockResolvedValue({ id: 'user-1', email: 'test@example.com' });
+      authRepository.findUserByUsername.mockResolvedValue({ id: 'user-1', username: 'testuser' });
 
-      await expect(authService.registerUser('test@example.com', 'password123')).rejects.toThrow(
+      await expect(authService.registerUser('testuser', 'password123')).rejects.toThrow(
         'User already exists'
       );
     });
@@ -259,17 +259,17 @@ describe('Auth Service', () => {
 
   describe('registerUser - success', () => {
     it('should register new user and return tokens', async () => {
-      const mockUser = { id: 'user-1', email: 'newuser@example.com', createdAt: new Date() };
-      authRepository.findUserByEmail.mockResolvedValue(null);
+      const mockUser = { id: 'user-1', username: 'newuser', createdAt: new Date() };
+      authRepository.findUserByUsername.mockResolvedValue(null);
       bcrypt.default.hash.mockResolvedValue('hashed-password');
       authRepository.createUser.mockResolvedValue(mockUser);
       jwt.default.sign.mockReturnValue('fake-token');
 
-      const result = await authService.registerUser('newuser@example.com', 'password123');
+      const result = await authService.registerUser('newuser', 'password123');
 
-      expect(authRepository.findUserByEmail).toHaveBeenCalledWith('newuser@example.com');
+      expect(authRepository.findUserByUsername).toHaveBeenCalledWith('newuser');
       expect(bcrypt.default.hash).toHaveBeenCalledWith('password123', 10);
-      expect(authRepository.createUser).toHaveBeenCalledWith('newuser@example.com', 'hashed-password');
+      expect(authRepository.createUser).toHaveBeenCalledWith('newuser', 'hashed-password');
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
@@ -278,24 +278,24 @@ describe('Auth Service', () => {
   });
 
   describe('loginUser - input validation', () => {
-    it('should throw error if email is missing', async () => {
+    it('should throw error if username is missing', async () => {
       await expect(authService.loginUser('', 'password123')).rejects.toThrow(
-        'Email and password are required'
+        'Username and password are required'
       );
     });
 
     it('should throw error if password is missing', async () => {
-      await expect(authService.loginUser('test@example.com', '')).rejects.toThrow(
-        'Email and password are required'
+      await expect(authService.loginUser('testuser', '')).rejects.toThrow(
+        'Username and password are required'
       );
     });
   });
 
   describe('loginUser - user not found', () => {
     it('should throw error if user not found', async () => {
-      authRepository.findUserByEmail.mockResolvedValue(null);
+      authRepository.findUserByUsername.mockResolvedValue(null);
 
-      await expect(authService.loginUser('nonexistent@example.com', 'password123')).rejects.toThrow(
+      await expect(authService.loginUser('nonexistent', 'password123')).rejects.toThrow(
         'Invalid credentials'
       );
     });
@@ -303,11 +303,11 @@ describe('Auth Service', () => {
 
   describe('loginUser - invalid password', () => {
     it('should throw error if password is invalid', async () => {
-      const mockUser = { id: 'user-1', email: 'test@example.com', password: 'hashed-password' };
-      authRepository.findUserByEmail.mockResolvedValue(mockUser);
+      const mockUser = { id: 'user-1', username: 'testuser', password: 'hashed-password' };
+      authRepository.findUserByUsername.mockResolvedValue(mockUser);
       bcrypt.default.compare.mockResolvedValue(false);
 
-      await expect(authService.loginUser('test@example.com', 'wrongpassword')).rejects.toThrow(
+      await expect(authService.loginUser('testuser', 'wrongpassword')).rejects.toThrow(
         'Invalid credentials'
       );
     });
@@ -315,20 +315,20 @@ describe('Auth Service', () => {
 
   describe('loginUser - success', () => {
     it('should login user and return tokens', async () => {
-      const mockUser = { id: 'user-1', email: 'test@example.com', password: 'hashed-password' };
-      authRepository.findUserByEmail.mockResolvedValue(mockUser);
+      const mockUser = { id: 'user-1', username: 'testuser', password: 'hashed-password' };
+      authRepository.findUserByUsername.mockResolvedValue(mockUser);
       bcrypt.default.compare.mockResolvedValue(true);
       jwt.default.sign.mockReturnValue('fake-token');
 
-      const result = await authService.loginUser('test@example.com', 'password123');
+      const result = await authService.loginUser('testuser', 'password123');
 
-      expect(authRepository.findUserByEmail).toHaveBeenCalledWith('test@example.com');
+      expect(authRepository.findUserByUsername).toHaveBeenCalledWith('testuser');
       expect(bcrypt.default.compare).toHaveBeenCalledWith('password123', 'hashed-password');
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
       expect(result.user).not.toHaveProperty('password');
-      expect(result.user.email).toBe('test@example.com');
+      expect(result.user.username).toBe('testuser');
     });
   });
 
