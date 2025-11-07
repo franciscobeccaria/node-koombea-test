@@ -45,8 +45,8 @@ export const scraperWorker = new Worker(
       // Scrape the URL
       const scrapedData = await scraperUtil.scrapeUrl(url);
 
-      // Update page with title and status
-      await pagesRepository.updatePageStatus(pageId, 'completed');
+      // Update page with title and status to completed
+      await pagesRepository.updatePageTitleAndStatus(pageId, scrapedData.title, 'completed');
 
       // Store links in database
       if (scrapedData.links && scrapedData.links.length > 0) {
@@ -57,6 +57,7 @@ export const scraperWorker = new Worker(
       return {
         success: true,
         pageId,
+        title: scrapedData.title,
         linksCount: scrapedData.links?.length || 0,
       };
     } catch (error) {

@@ -5,6 +5,8 @@ const dashboardEl = document.getElementById('dashboard');
 // State
 let currentPage = 1;
 let currentPageSize = 20;
+let autoRefreshInterval = null;
+let hasProcessingPages = false;
 
 // Auth Functions
 function showAuth() {
@@ -120,16 +122,28 @@ const renderPagesTable = (pages) => {
   const tbody = document.getElementById('pagesTableBody');
 
   if (pages.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="2">No pages found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4">No pages found</td></tr>';
+    hasProcessingPages = false;
     return;
   }
 
-  tbody.innerHTML = pages.map(page => `
+  // Check if any page is processing
+  hasProcessingPages = pages.some(page => page.status === 'processing');
+
+  tbody.innerHTML = pages.map(page => {
+    const statusBadge = `<span class="status-badge status-${page.status}">${page.status}</span>`;
+    return `
     <tr onclick="window.location.href='/page/${page.id}'" style="cursor:pointer;">
       <td>${page.title}</td>
       <td>${page.linkCount}</td>
+      <td>${statusBadge}</td>
+      <td>${new Date(page.createdAt).toLocaleDateString()}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
+
+  // Setup auto-refresh if pages are processing
+  setupAutoRefresh();
 };
 
 const renderPagesPagination = (total, currentPageNum) => {
@@ -170,6 +184,22 @@ document.getElementById('logoutBtn').onclick = () => {
   document.getElementById('authError').textContent = '';
   showAuth();
 };
+
+// Auto-refresh for processing pages
+function setupAutoRefresh() {
+  // Clear existing interval
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+  }
+
+  // Only set up interval if there are processing pages
+  if (hasProcessingPages) {
+    autoRefreshInterval = setInterval(() => {
+      loadPages(currentPage);
+    }, 3000); // Refresh every 3 seconds
+  }
+}
 
 // Initialize
 if (localStorage.getItem('accessToken')) {

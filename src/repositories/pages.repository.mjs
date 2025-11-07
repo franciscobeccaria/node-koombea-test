@@ -122,3 +122,18 @@ export const updatePageStatus = async (pageId, status) => {
     },
   });
 };
+
+export const updatePageTitleAndStatus = async (pageId, title, status) => {
+  return prisma.page.update({
+    where: { id: pageId },
+    data: { title, status },
+    select: {
+      id: true,
+      url: true,
+      title: true,
+      linkCount: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+};
