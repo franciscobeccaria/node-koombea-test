@@ -51,8 +51,13 @@ describe('API Integration Tests', () => {
 
         // Should succeed with valid data
         expect(response.status).toBe(201);
-        expect(response.body).toHaveProperty('accessToken');
-        expect(response.body).toHaveProperty('refreshToken');
+        // Tokens are now in httpOnly cookies, not in response body
+        expect(response.headers['set-cookie']).toBeDefined();
+        const setCookieHeaders = response.headers['set-cookie'];
+        const hasAccessToken = setCookieHeaders.some(cookie => cookie.includes('accessToken'));
+        const hasRefreshToken = setCookieHeaders.some(cookie => cookie.includes('refreshToken'));
+        expect(hasAccessToken).toBe(true);
+        expect(hasRefreshToken).toBe(true);
         expect(response.body.user.username).toBe('newuser');
       });
     });
@@ -275,6 +280,59 @@ describe('API Integration Tests', () => {
       // Login should fail with 401 Unauthorized
       expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('message');
+    });
+
+    it('should accept valid login request and set cookies', async () => {
+      // First register a user
+      await request(app).post('/auth/register').send({
+        username: 'logintest',
+        password: 'password123',
+      });
+
+      // Then login
+      const response = await request(app).post('/auth/login').send({
+        username: 'logintest',
+        password: 'password123',
+      });
+
+      // Should succeed with valid credentials
+      expect(response.status).toBe(200);
+      // Tokens should be in httpOnly cookies
+      expect(response.headers['set-cookie']).toBeDefined();
+      const setCookieHeaders = response.headers['set-cookie'];
+      const hasAccessToken = setCookieHeaders.some(cookie => cookie.includes('accessToken'));
+      const hasRefreshToken = setCookieHeaders.some(cookie => cookie.includes('refreshToken'));
+      expect(hasAccessToken).toBe(true);
+      expect(hasRefreshToken).toBe(true);
+      expect(response.body.user.username).toBe('logintest');
+    });
+  });
+
+  describe('POST /auth/logout', () => {
+    it('should successfully process logout request', async () => {
+      // First register and login
+      await request(app).post('/auth/register').send({
+        username: 'logouttest',
+        password: 'password123',
+      });
+
+      const agent = request.agent(app);
+      // Use agent to maintain cookies across requests
+      const loginRes = await agent.post('/auth/login').send({
+        username: 'logouttest',
+        password: 'password123',
+      });
+
+      expect(loginRes.status).toBe(200);
+
+      // Now logout
+      const logoutRes = await agent.post('/auth/logout');
+
+      expect(logoutRes.status).toBe(200);
+      expect(logoutRes.body).toHaveProperty('message');
+      expect(logoutRes.body.message).toBe('Logged out successfully');
+      // Logout should send set-cookie headers
+      expect(logoutRes.headers['set-cookie']).toBeDefined();
     });
   });
 

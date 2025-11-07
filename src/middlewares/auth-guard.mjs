@@ -2,22 +2,22 @@ import * as authService from '../services/auth.service.mjs';
 
 /**
  * Auth guard middleware
- * Validates JWT token and sets req.user
+ * Validates JWT token from httpOnly cookie or Authorization header
  * Returns 401 if token is missing or invalid
  */
 export const authGuard = (req, res, next) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
+    // Get token from httpOnly cookie (primary) or Authorization header (fallback for backward compatibility)
+    const token = req.cookies.accessToken ||
+                  (req.headers.authorization?.startsWith('Bearer ')
+                    ? req.headers.authorization.slice(7)
+                    : null);
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       const error = new Error('Unauthorized');
       error.status = 401;
       throw error;
     }
-
-    // Extract token
-    const token = authHeader.slice(7); // Remove 'Bearer ' prefix
 
     // Verify token
     const decoded = authService.verifyAccessToken(token);

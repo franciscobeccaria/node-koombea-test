@@ -28,18 +28,18 @@ document.getElementById('loginBtn').onclick = async () => {
   const password = document.getElementById('password').value;
 
   try {
-    const res = await fetch(`${API}/auth/login`, {
+    const res = await apiFetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
-    });
+    }, showAuth);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
 
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
+    // Store only user data, tokens are in httpOnly cookies
     localStorage.setItem('user', JSON.stringify(data.user));
+    document.getElementById('authError').textContent = '';
     showDashboard();
   } catch (err) {
     document.getElementById('authError').textContent = err.message;
@@ -52,18 +52,18 @@ document.getElementById('registerBtn').onclick = async () => {
   const password = document.getElementById('password').value;
 
   try {
-    const res = await fetch(`${API}/auth/register`, {
+    const res = await apiFetch(`${API}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
-    });
+    }, showAuth);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
 
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
+    // Store only user data, tokens are in httpOnly cookies
     localStorage.setItem('user', JSON.stringify(data.user));
+    document.getElementById('authError').textContent = '';
     showDashboard();
   } catch (err) {
     document.getElementById('authError').textContent = err.message;
@@ -73,17 +73,15 @@ document.getElementById('registerBtn').onclick = async () => {
 // Create Page
 document.getElementById('createPageBtn').onclick = async () => {
   const url = document.getElementById('pageUrl').value;
-  const token = localStorage.getItem('accessToken');
 
   try {
-    const res = await fetch(`${API}/pages`, {
+    const res = await apiFetch(`${API}/pages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ url })
-    });
+    }, showAuth);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
@@ -100,13 +98,10 @@ document.getElementById('createPageBtn').onclick = async () => {
 // Load Pages
 const loadPages = async (page = 1) => {
   currentPage = page;
-  const token = localStorage.getItem('accessToken');
   const offset = (page - 1) * currentPageSize;
 
   try {
-    const res = await fetch(`${API}/pages?limit=${currentPageSize}&offset=${offset}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await apiFetch(`${API}/pages?limit=${currentPageSize}&offset=${offset}`, {}, showAuth);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
@@ -114,7 +109,7 @@ const loadPages = async (page = 1) => {
     renderPagesTable(data.data);
     renderPagesPagination(data.pagination.total, page);
   } catch (err) {
-    document.getElementById('pagesTableBody').innerHTML = `<tr><td colspan="2" style="color:red;">${err.message}</td></tr>`;
+    document.getElementById('pagesTableBody').innerHTML = `<tr><td colspan="4" style="color:red;">${err.message}</td></tr>`;
   }
 };
 
@@ -177,7 +172,17 @@ function nextPage() {
 }
 
 // Logout
-document.getElementById('logoutBtn').onclick = () => {
+document.getElementById('logoutBtn').onclick = async () => {
+  try {
+    // Call logout endpoint to clear server-side cookies
+    await apiFetch(`${API}/auth/logout`, {
+      method: 'POST',
+    }, showAuth);
+  } catch (err) {
+    console.error('Logout error:', err);
+  }
+
+  // Clear client-side data
   localStorage.clear();
   document.getElementById('username').value = '';
   document.getElementById('password').value = '';
@@ -202,7 +207,7 @@ function setupAutoRefresh() {
 }
 
 // Initialize
-if (localStorage.getItem('accessToken')) {
+if (localStorage.getItem('user')) {
   showDashboard();
 } else {
   showAuth();

@@ -9,28 +9,32 @@ let currentLinksPage = 1;
 let currentLinkSize = 20;
 let allLinksData = [];
 
-// Check if user is logged in
-if (!localStorage.getItem('accessToken')) {
-  window.location.href = '/';
-}
-
-// Display username
+// Check if user is logged in by checking if user data exists
 const user = JSON.parse(localStorage.getItem('user'));
 if (!user || !user.username) {
-  localStorage.clear();
-  window.location.href = '/';
+  // If not logged in locally, try to verify with the API
+  apiFetch(`${API}/pages`, {}, () => {
+    localStorage.clear();
+    window.location.href = '/';
+  })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Not authenticated');
+      }
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = '/';
+    });
 } else {
+  // Display username
   document.getElementById('userName').textContent = user.username;
 }
 
 // Load page detail
 const loadPageDetail = async () => {
-  const token = localStorage.getItem('accessToken');
-
   try {
-    const res = await fetch(`${API}/pages/${pageId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await apiFetch(`${API}/pages/${pageId}`, {}, () => window.location.href = '/');
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
@@ -46,13 +50,10 @@ const loadPageDetail = async () => {
 // Load page links
 const loadPageLinks = async (page = 1) => {
   currentLinksPage = page;
-  const token = localStorage.getItem('accessToken');
   const offset = (page - 1) * currentLinkSize;
 
   try {
-    const res = await fetch(`${API}/pages/${pageId}/links?limit=${currentLinkSize}&offset=${offset}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await apiFetch(`${API}/pages/${pageId}/links?limit=${currentLinkSize}&offset=${offset}`, {}, () => window.location.href = '/');
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
@@ -135,10 +136,22 @@ function nextLinksPage() {
 }
 
 // Logout
-document.getElementById('logoutBtn').onclick = () => {
+document.getElementById('logoutBtn').onclick = async () => {
+  try {
+    // Call logout endpoint to clear server-side cookies
+    await apiFetch(`${API}/auth/logout`, {
+      method: 'POST',
+    }, () => window.location.href = '/');
+  } catch (err) {
+    console.error('Logout error:', err);
+  }
+
+  // Clear client-side data
   localStorage.clear();
   window.location.href = '/';
 };
 
 // Initialize
-loadPageDetail();
+if (user && user.username) {
+  loadPageDetail();
+}
