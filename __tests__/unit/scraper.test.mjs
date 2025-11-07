@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals';
 import { scrapeUrl } from '../../src/utils/scraper.mjs';
 
 describe('Scraper Utility', () => {
@@ -7,25 +6,24 @@ describe('Scraper Utility', () => {
       expect(typeof scrapeUrl).toBe('function');
     });
 
-    it('should throw on invalid URL', async () => {
-      await expect(scrapeUrl('not-a-valid-url')).rejects.toThrow();
-    });
-
     it('should throw on invalid URL without protocol', async () => {
       await expect(scrapeUrl('example.com')).rejects.toThrow();
     });
 
-    it('should accept valid URLs and return title and links object', async () => {
-      // This test attempts to scrape a real URL
-      // It may fail if no network, but the function call itself should be valid
+    it('should throw on invalid URL', async () => {
+      await expect(scrapeUrl('not-a-valid-url')).rejects.toThrow();
+    });
+
+    it('should handle a valid URL structure', async () => {
+      // Just verify the function processes valid URLs without throwing validation errors
       try {
-        const result = await scrapeUrl('https://example.com/');
-        expect(result).toHaveProperty('title');
-        expect(result).toHaveProperty('links');
-        expect(Array.isArray(result.links)).toBe(true);
-      } catch (err) {
-        // Network or scraping error is OK - the function structure is valid
-        expect(err).toBeDefined();
+        await scrapeUrl('https://example.com');
+      } catch (error) {
+        // Network/timeout errors are acceptable in unit tests
+        // We're just checking that URL validation passes
+        expect(['AbortError', 'fetch failed', 'Scrape timeout'].some(msg =>
+          error.message.includes(msg)
+        )).toBe(true);
       }
     });
   });
