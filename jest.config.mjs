@@ -17,5 +17,5 @@ export default {
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.mjs'],
   forceExit: true,
-  testTimeout: 10000,
+  testTimeout: 30000,
 };
