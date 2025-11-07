@@ -142,7 +142,7 @@ const renderPagesTable = (pages) => {
   }).join('');
 
   // Setup auto-refresh if pages are processing
-  setupAutoRefresh();
+  startPagesAutoRefresh();
 };
 
 const renderPagesPagination = (total, currentPageNum) => {
@@ -188,6 +188,8 @@ document.getElementById('logoutBtn').onclick = async () => {
 
   // Stop automatic token refresh
   stopTokenRefreshInterval();
+  // Stop pages auto-refresh
+  stopPagesAutoRefresh();
   // Clear client-side data
   localStorage.clear();
   document.getElementById('username').value = '';
@@ -197,7 +199,7 @@ document.getElementById('logoutBtn').onclick = async () => {
 };
 
 // Auto-refresh for processing pages
-function setupAutoRefresh() {
+function startPagesAutoRefresh() {
   // Clear existing interval
   if (autoRefreshInterval) {
     clearInterval(autoRefreshInterval);
@@ -209,6 +211,13 @@ function setupAutoRefresh() {
     autoRefreshInterval = setInterval(() => {
       loadPages(currentPage);
     }, 3000); // Refresh every 3 seconds
+  }
+}
+
+function stopPagesAutoRefresh() {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
   }
 }
 

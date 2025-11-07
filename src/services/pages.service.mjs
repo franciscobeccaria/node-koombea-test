@@ -39,44 +39,6 @@ export const createPageWithAsyncScrape = async (url, userId) => {
   };
 };
 
-export const createPageAndScrapeInline = async (url, userId) => {
-  if (!url) {
-    const error = new Error('URL is required');
-    error.status = 400;
-    throw error;
-  }
-
-  // Validate URL format
-  try {
-    new URL(url);
-  } catch {
-    const error = new Error('Invalid URL format');
-    error.status = 400;
-    throw error;
-  }
-
-  // Scrape the URL
-  const scrapedData = await scrapeUrl(url);
-
-  // Create page in DB
-  const page = await pagesRepository.createPage(userId, url, scrapedData.title);
-
-  // Create links in DB
-  if (scrapedData.links.length > 0) {
-    await pagesRepository.createManyLinks(page.id, scrapedData.links);
-    await pagesRepository.updatePageLinkCount(page.id, scrapedData.links.length);
-  }
-
-  return {
-    id: page.id,
-    url: page.url,
-    title: page.title,
-    linkCount: scrapedData.links.length,
-    links: scrapedData.links,
-    createdAt: page.createdAt,
-  };
-};
-
 export const listPages = async (userId, limit, offset) => {
   const pages = await pagesRepository.findPagesByUser(userId, limit, offset);
   const total = await pagesRepository.countPagesByUser(userId);

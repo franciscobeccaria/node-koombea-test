@@ -3,7 +3,6 @@ import { jest } from '@jest/globals';
 // Mock pages service before importing controller
 jest.unstable_mockModule('../../src/services/pages.service.mjs', () => ({
   createPageWithAsyncScrape: jest.fn(),
-  createPageAndScrapeInline: jest.fn(),
   listPages: jest.fn(),
   getPage: jest.fn(),
   listLinks: jest.fn(),
