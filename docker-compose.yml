@@ -28,6 +28,10 @@ services:
     container_name: koombea_redis
     ports:
       - "6379:6379"
+    volumes:
+      # Persist Redis data for job queue state
+      - redis_data:/data
+    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -87,6 +91,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
