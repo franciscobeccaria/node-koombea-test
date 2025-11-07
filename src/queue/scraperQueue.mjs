@@ -45,6 +45,9 @@ export const scraperWorker = new Worker(
       // Scrape the URL
       const scrapedData = await scraperUtil.scrapeUrl(url);
 
+      // Update page with title and status
+      await pagesRepository.updatePageStatus(pageId, 'completed');
+
       // Store links in database
       if (scrapedData.links && scrapedData.links.length > 0) {
         await pagesRepository.createManyLinks(pageId, scrapedData.links);
@@ -57,6 +60,12 @@ export const scraperWorker = new Worker(
         linksCount: scrapedData.links?.length || 0,
       };
     } catch (error) {
+      // Update page status to failed
+      try {
+        await pagesRepository.updatePageStatus(pageId, 'failed');
+      } catch (updateError) {
+        console.error(`Failed to update page ${pageId} status:`, updateError);
+      }
       throw new Error(`Scraping failed for URL ${url}: ${error.message}`);
     }
   },

@@ -13,6 +13,7 @@ export const createPage = async (userId, url, title) => {
       url: true,
       title: true,
       linkCount: true,
+      status: true,
       createdAt: true,
     },
   });
@@ -39,6 +40,7 @@ export const updatePageLinkCount = async (pageId, linkCount) => {
       url: true,
       title: true,
       linkCount: true,
+      status: true,
     },
   });
 };
@@ -51,6 +53,7 @@ export const findPagesByUser = async (userId, limit, offset) => {
       url: true,
       title: true,
       linkCount: true,
+      status: true,
       createdAt: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -74,6 +77,7 @@ export const findPageById = async (id, userId) => {
       url: true,
       title: true,
       linkCount: true,
+      status: true,
       createdAt: true,
     },
   }).then(page => {
@@ -101,5 +105,20 @@ export const findLinksByPage = async (pageId, limit, offset) => {
 export const countLinksByPage = async (pageId) => {
   return prisma.link.count({
     where: { pageId },
+  });
+};
+
+export const updatePageStatus = async (pageId, status) => {
+  return prisma.page.update({
+    where: { id: pageId },
+    data: { status },
+    select: {
+      id: true,
+      url: true,
+      title: true,
+      linkCount: true,
+      status: true,
+      createdAt: true,
+    },
   });
 };

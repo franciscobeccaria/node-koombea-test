@@ -33,9 +33,9 @@ export const createPageWithAsyncScrape = async (url, userId) => {
     id: page.id,
     url: page.url,
     title: page.title,
-    linkCount: 0,
+    linkCount: page.linkCount,
     createdAt: page.createdAt,
-    status: 'scraping_in_progress',
+    status: page.status,
   };
 };
 

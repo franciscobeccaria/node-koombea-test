@@ -26,6 +26,7 @@ model Page {
   url       String
   title     String?
   linkCount Int     @default(0)
+  status    String  @default("processing") // "processing", "completed", "failed"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

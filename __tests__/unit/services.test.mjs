@@ -144,12 +144,13 @@ describe('Pages Service', () => {
       ).rejects.toThrow('Invalid URL format');
     });
 
-    it('should create page and return scraping_in_progress status', async () => {
+    it('should create page and return processing status', async () => {
       const mockPage = {
         id: 'page-1',
         url: 'https://example.com',
         title: 'Processing...',
         linkCount: 0,
+        status: 'processing',
         createdAt: new Date(),
       };
       pagesRepository.createPage.mockResolvedValue(mockPage);
@@ -165,7 +166,7 @@ describe('Pages Service', () => {
         title: 'Processing...',
         linkCount: 0,
         createdAt: mockPage.createdAt,
-        status: 'scraping_in_progress',
+        status: 'processing',
       });
     });
   });
@@ -178,6 +179,7 @@ describe('Pages Service', () => {
           url: 'https://example.com',
           title: 'Example',
           linkCount: 5,
+          status: 'completed',
           createdAt: new Date(),
         },
       ];

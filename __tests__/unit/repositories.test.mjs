@@ -106,6 +106,7 @@ describe('Pages Repository', () => {
         url: 'https://example.com',
         title: 'Example',
         linkCount: 0,
+        status: 'processing',
         createdAt: new Date(),
       };
       prisma.page.create.mockResolvedValue(mockPage);
@@ -124,6 +125,7 @@ describe('Pages Repository', () => {
           url: true,
           title: true,
           linkCount: true,
+          status: true,
           createdAt: true,
         },
       });
@@ -139,6 +141,7 @@ describe('Pages Repository', () => {
           url: 'https://example.com',
           title: 'Example',
           linkCount: 5,
+          status: 'completed',
           createdAt: new Date(),
         },
       ];
@@ -153,6 +156,7 @@ describe('Pages Repository', () => {
           url: true,
           title: true,
           linkCount: true,
+          status: true,
           createdAt: true,
         },
         orderBy: { createdAt: 'desc' },
@@ -174,6 +178,7 @@ describe('Pages Repository', () => {
           url: true,
           title: true,
           linkCount: true,
+          status: true,
           createdAt: true,
         },
         orderBy: { createdAt: 'desc' },
@@ -212,6 +217,7 @@ describe('Pages Repository', () => {
         url: 'https://example.com',
         title: 'Example',
         linkCount: 5,
+        status: 'completed',
         createdAt: new Date(),
       };
       prisma.page.findUnique.mockResolvedValue(mockPage);
@@ -226,6 +232,7 @@ describe('Pages Repository', () => {
           url: true,
           title: true,
           linkCount: true,
+          status: true,
           createdAt: true,
         },
       });
@@ -336,6 +343,7 @@ describe('Pages Repository', () => {
         url: 'https://example.com',
         title: 'Example',
         linkCount: 10,
+        status: 'completed',
       };
       prisma.page.update.mockResolvedValue(mockPage);
 
@@ -349,6 +357,7 @@ describe('Pages Repository', () => {
           url: true,
           title: true,
           linkCount: true,
+          status: true,
         },
       });
       expect(result).toEqual(mockPage);
