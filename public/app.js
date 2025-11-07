@@ -40,6 +40,8 @@ document.getElementById('loginBtn').onclick = async () => {
     // Store only user data, tokens are in httpOnly cookies
     localStorage.setItem('user', JSON.stringify(data.user));
     document.getElementById('authError').textContent = '';
+    // Start automatic token refresh
+    startTokenRefreshInterval();
     showDashboard();
   } catch (err) {
     document.getElementById('authError').textContent = err.message;
@@ -64,6 +66,8 @@ document.getElementById('registerBtn').onclick = async () => {
     // Store only user data, tokens are in httpOnly cookies
     localStorage.setItem('user', JSON.stringify(data.user));
     document.getElementById('authError').textContent = '';
+    // Start automatic token refresh
+    startTokenRefreshInterval();
     showDashboard();
   } catch (err) {
     document.getElementById('authError').textContent = err.message;
@@ -182,6 +186,8 @@ document.getElementById('logoutBtn').onclick = async () => {
     console.error('Logout error:', err);
   }
 
+  // Stop automatic token refresh
+  stopTokenRefreshInterval();
   // Clear client-side data
   localStorage.clear();
   document.getElementById('username').value = '';

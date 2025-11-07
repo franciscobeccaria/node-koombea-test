@@ -146,6 +146,8 @@ document.getElementById('logoutBtn').onclick = async () => {
     console.error('Logout error:', err);
   }
 
+  // Stop automatic token refresh
+  stopTokenRefreshInterval();
   // Clear client-side data
   localStorage.clear();
   window.location.href = '/';
@@ -153,5 +155,7 @@ document.getElementById('logoutBtn').onclick = async () => {
 
 // Initialize
 if (user && user.username) {
+  // Start automatic token refresh
+  startTokenRefreshInterval();
   loadPageDetail();
 }

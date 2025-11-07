@@ -1,4 +1,54 @@
 let isRefreshing = false;
+let tokenRefreshInterval = null;
+
+/**
+ * Refresh access token by calling /auth/refresh endpoint
+ * @returns {Promise<boolean>} True if refresh successful, false otherwise
+ */
+async function refreshAccessToken() {
+  try {
+    const response = await fetch(`${API}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    return response.ok;
+  } catch (err) {
+    console.error('Token refresh failed:', err);
+    return false;
+  }
+}
+
+/**
+ * Start automatic token refresh interval
+ * Refreshes token every 50 minutes (before 1 hour expiration)
+ */
+function startTokenRefreshInterval() {
+  if (tokenRefreshInterval) return; // Already running
+
+  const REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes
+
+  tokenRefreshInterval = setInterval(async () => {
+    console.log('Proactive token refresh...');
+    const success = await refreshAccessToken();
+    if (success) {
+      console.log('Token refreshed successfully');
+    } else {
+      console.warn('Token refresh failed, will retry on next request');
+    }
+  }, REFRESH_INTERVAL);
+}
+
+/**
+ * Stop automatic token refresh interval
+ */
+function stopTokenRefreshInterval() {
+  if (tokenRefreshInterval) {
+    clearInterval(tokenRefreshInterval);
+    tokenRefreshInterval = null;
+  }
+}
 
 /**
  * Enhanced fetch wrapper with automatic token refresh on 401
@@ -20,20 +70,15 @@ async function apiFetch(url, options = {}, onAuthError = null) {
     isRefreshing = true;
 
     try {
-      const refreshResponse = await fetch(`${API}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
+      const refreshSuccess = await refreshAccessToken();
 
       isRefreshing = false;
 
-      if (refreshResponse.ok) {
+      if (refreshSuccess) {
         response = await fetch(url, config);
       } else {
         if (onAuthError) onAuthError();
-        const errorData = await refreshResponse.json();
-        throw new Error(errorData.message || 'Session expired, please login again');
+        throw new Error('Session expired, please login again');
       }
     } catch (err) {
       isRefreshing = false;
