@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 
 // Mock pages service before importing controller
 jest.unstable_mockModule('../../src/services/pages.service.mjs', () => ({
+  createPageWithAsyncScrape: jest.fn(),
   createPageAndScrapeInline: jest.fn(),
   listPages: jest.fn(),
   getPage: jest.fn(),
@@ -30,21 +31,22 @@ describe('Pages Controller', () => {
   });
 
   describe('createPage', () => {
-    it('should create a page with valid URL', async () => {
+    it('should create a page with valid URL and enqueue scraping', async () => {
       const mockPage = {
         id: 'page-1',
-        userId: 'user-1',
         url: 'https://example.com',
-        title: 'Example',
+        title: 'Processing...',
         linkCount: 0,
+        createdAt: new Date(),
+        status: 'scraping_in_progress',
       };
       req.body = { url: 'https://example.com' };
-      pagesService.createPageAndScrapeInline.mockResolvedValue(mockPage);
+      pagesService.createPageWithAsyncScrape.mockResolvedValue(mockPage);
 
       await pagesController.createPage(req, res, next);
 
-      expect(pagesService.createPageAndScrapeInline).toHaveBeenCalledWith('https://example.com', 'user-1');
-      expect(res.status).toHaveBeenCalledWith(201);
+      expect(pagesService.createPageWithAsyncScrape).toHaveBeenCalledWith('https://example.com', 'user-1');
+      expect(res.status).toHaveBeenCalledWith(202);
       expect(res.json).toHaveBeenCalledWith(mockPage);
       expect(next).not.toHaveBeenCalled();
     });
@@ -52,7 +54,7 @@ describe('Pages Controller', () => {
     it('should call next with error on service failure', async () => {
       const error = new Error('Service error');
       req.body = { url: 'https://example.com' };
-      pagesService.createPageAndScrapeInline.mockRejectedValue(error);
+      pagesService.createPageWithAsyncScrape.mockRejectedValue(error);
 
       await pagesController.createPage(req, res, next);
 

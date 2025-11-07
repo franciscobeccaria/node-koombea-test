@@ -1,5 +1,43 @@
 import { scrapeUrl } from '../utils/scraper.mjs';
 import * as pagesRepository from '../repositories/pages.repository.mjs';
+import { enqueueScrapeJob } from '../queue/scraperQueue.mjs';
+
+export const createPageWithAsyncScrape = async (url, userId) => {
+  if (!url) {
+    const error = new Error('URL is required');
+    error.status = 400;
+    throw error;
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+  } catch {
+    const error = new Error('Invalid URL format');
+    error.status = 400;
+    throw error;
+  }
+
+  // Create page in DB with empty title (will be updated after scraping)
+  const page = await pagesRepository.createPage(userId, url, 'Processing...');
+
+  // Enqueue scraping job
+  try {
+    await enqueueScrapeJob(page.id, userId, url);
+  } catch (error) {
+    console.error('Failed to enqueue scrape job:', error);
+    // Job enqueueing failed, but page was created. Log and return page anyway.
+  }
+
+  return {
+    id: page.id,
+    url: page.url,
+    title: page.title,
+    linkCount: 0,
+    createdAt: page.createdAt,
+    status: 'scraping_in_progress',
+  };
+};
 
 export const createPageAndScrapeInline = async (url, userId) => {
   if (!url) {

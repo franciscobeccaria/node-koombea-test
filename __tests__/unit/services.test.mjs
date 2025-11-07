@@ -22,6 +22,10 @@ jest.unstable_mockModule('../../src/utils/scraper.mjs', () => ({
   scrapeUrl: jest.fn(),
 }));
 
+jest.unstable_mockModule('../../src/queue/scraperQueue.mjs', () => ({
+  enqueueScrapeJob: jest.fn(),
+}));
+
 jest.unstable_mockModule('bcryptjs', () => ({
   default: {
     hash: jest.fn(),
@@ -39,6 +43,7 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
 const pagesRepository = await import('../../src/repositories/pages.repository.mjs');
 const authRepository = await import('../../src/repositories/auth.repository.mjs');
 const scraper = await import('../../src/utils/scraper.mjs');
+const scraperQueue = await import('../../src/queue/scraperQueue.mjs');
 const bcrypt = await import('bcryptjs');
 const jwt = await import('jsonwebtoken');
 const pagesService = await import('../../src/services/pages.service.mjs');
@@ -123,6 +128,45 @@ describe('Pages Service', () => {
       expect(pagesRepository.createManyLinks).not.toHaveBeenCalled();
       expect(pagesRepository.updatePageLinkCount).not.toHaveBeenCalled();
       expect(result.linkCount).toBe(0);
+    });
+  });
+
+  describe('createPageWithAsyncScrape', () => {
+    it('should throw error if URL is missing', async () => {
+      await expect(pagesService.createPageWithAsyncScrape('', 'user-1')).rejects.toThrow(
+        'URL is required'
+      );
+    });
+
+    it('should throw error if URL format is invalid', async () => {
+      await expect(
+        pagesService.createPageWithAsyncScrape('not-a-valid-url', 'user-1')
+      ).rejects.toThrow('Invalid URL format');
+    });
+
+    it('should create page and return scraping_in_progress status', async () => {
+      const mockPage = {
+        id: 'page-1',
+        url: 'https://example.com',
+        title: 'Processing...',
+        linkCount: 0,
+        createdAt: new Date(),
+      };
+      pagesRepository.createPage.mockResolvedValue(mockPage);
+      scraperQueue.enqueueScrapeJob.mockResolvedValue({ id: 'job-1' });
+
+      const result = await pagesService.createPageWithAsyncScrape('https://example.com', 'user-1');
+
+      expect(pagesRepository.createPage).toHaveBeenCalledWith('user-1', 'https://example.com', 'Processing...');
+      expect(scraperQueue.enqueueScrapeJob).toHaveBeenCalledWith('page-1', 'user-1', 'https://example.com');
+      expect(result).toEqual({
+        id: 'page-1',
+        url: 'https://example.com',
+        title: 'Processing...',
+        linkCount: 0,
+        createdAt: mockPage.createdAt,
+        status: 'scraping_in_progress',
+      });
     });
   });
 

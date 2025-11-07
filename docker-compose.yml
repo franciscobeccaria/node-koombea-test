@@ -22,6 +22,20 @@ services:
     networks:
       - koombea_network
 
+  # Redis Service for BullMQ
+  redis:
+    image: redis:7-alpine
+    container_name: koombea_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - koombea_network
+
   # Express Application Service
   app:
     build:
@@ -31,6 +45,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       # Node environment
       NODE_ENV: development
@@ -38,6 +54,9 @@ services:
 
       # Database configuration (PostgreSQL for Docker)
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-koombea_dev}
+
+      # Redis configuration (for BullMQ)
+      REDIS_URL: redis://redis:6379
 
       # JWT Configuration
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}

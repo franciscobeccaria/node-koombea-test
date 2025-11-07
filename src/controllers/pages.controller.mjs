@@ -5,9 +5,9 @@ export const createPage = async (req, res, next) => {
     const { url } = req.body;
     const userId = req.user.userId;
 
-    const page = await pagesService.createPageAndScrapeInline(url, userId);
+    const page = await pagesService.createPageWithAsyncScrape(url, userId);
 
-    res.status(201).json(page);
+    res.status(202).json(page);
   } catch (error) {
     next(error);
   }
