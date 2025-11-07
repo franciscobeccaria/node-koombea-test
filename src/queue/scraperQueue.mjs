@@ -61,9 +61,12 @@ export const scraperWorker = new Worker(
         linksCount: scrapedData.links?.length || 0,
       };
     } catch (error) {
-      // Update page status to failed
+      // Update page title and status to failed
       try {
-        await pagesRepository.updatePageStatus(pageId, 'failed');
+        // Extract domain from URL for the title
+        const urlObj = new URL(url);
+        const domain = urlObj.hostname;
+        await pagesRepository.updatePageTitleAndStatus(pageId, `${domain} (Failed)`, 'failed');
       } catch (updateError) {
         console.error(`Failed to update page ${pageId} status:`, updateError);
       }
