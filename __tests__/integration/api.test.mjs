@@ -49,8 +49,11 @@ describe('API Integration Tests', () => {
           password: 'password123',
         });
 
-        // Will fail at DB, but not at validation
-        expect([400, 409, 500]).toContain(response.status);
+        // Should succeed with valid data
+        expect(response.status).toBe(201);
+        expect(response.body).toHaveProperty('accessToken');
+        expect(response.body).toHaveProperty('refreshToken');
+        expect(response.body.user.username).toBe('newuser');
       });
     });
 
@@ -245,25 +248,32 @@ describe('API Integration Tests', () => {
   });
 
   describe('Auth Controller - Error Cases', () => {
-    it('should handle register endpoint with database error', async () => {
+    it('should return 409 when registering duplicate username', async () => {
+      // First registration should succeed
+      const firstResponse = await request(app).post('/auth/register').send({
+        username: 'duplicateuser',
+        password: 'password123',
+      });
+      expect(firstResponse.status).toBe(201);
+
+      // Second registration with same username should fail with 409 Conflict
       const response = await request(app).post('/auth/register').send({
-        username: 'testuser',
+        username: 'duplicateuser',
         password: 'password123',
       });
 
-      // DB will fail, but response should have message
-      expect(response.status).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBe(409);
       expect(response.body).toHaveProperty('message');
     });
 
-    it('should handle login endpoint with database error', async () => {
+    it('should return 401 when login with non-existent user', async () => {
       const response = await request(app).post('/auth/login').send({
-        username: 'testuser',
+        username: 'nonexistentuser',
         password: 'password123',
       });
 
-      // DB will fail, but response should have message
-      expect(response.status).toBeGreaterThanOrEqual(400);
+      // Login should fail with 401 Unauthorized
+      expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('message');
     });
   });
@@ -326,13 +336,11 @@ describe('API Integration Tests', () => {
 
     it('should apply error middleware for unhandled errors', async () => {
       const response = await request(app)
-        .post('/auth/register')
-        .send({
-          username: 'testuser',
-          password: 'password123',
-        });
+        .get('/pages')
+        .set('Authorization', 'Bearer invalid-token-format');
 
-      // Error middleware should catch DB error and return JSON
+      // Error middleware should catch auth error and return JSON
+      expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('message');
       expect(typeof response.body.message).toBe('string');
     });
