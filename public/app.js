@@ -32,7 +32,7 @@ document.getElementById('loginBtn').onclick = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
-    }, showAuth);
+    }, showAuth, false);  // Don't refresh on auth endpoint
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);
@@ -58,7 +58,7 @@ document.getElementById('registerBtn').onclick = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
-    }, showAuth);
+    }, showAuth, false);  // Don't refresh on auth endpoint
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.message);

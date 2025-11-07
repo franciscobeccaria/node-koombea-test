@@ -56,9 +56,10 @@ function stopTokenRefreshInterval() {
  * @param {string} url - The URL to fetch
  * @param {object} options - Fetch options
  * @param {function} onAuthError - Callback when auth fails after refresh attempt
+ * @param {boolean} shouldRefreshOnFail - Whether to attempt token refresh on 401 (default: true for protected endpoints)
  * @returns {Promise<Response>}
  */
-async function apiFetch(url, options = {}, onAuthError = null) {
+async function apiFetch(url, options = {}, onAuthError = null, shouldRefreshOnFail = true) {
   const config = {
     ...options,
     credentials: 'include',
@@ -66,7 +67,7 @@ async function apiFetch(url, options = {}, onAuthError = null) {
 
   let response = await fetch(url, config);
 
-  if (response.status === 401 && !isRefreshing) {
+  if (response.status === 401 && !isRefreshing && shouldRefreshOnFail) {
     isRefreshing = true;
 
     try {
