@@ -39,3 +39,19 @@ export const login = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * POST /auth/refresh
+ * Refresh access token using refresh token
+ */
+export const refresh = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+
+    const result = await authService.refreshAccessToken(refreshToken);
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -73,6 +73,29 @@ export const verifyAccessToken = (token) => {
   }
 };
 
+export const refreshAccessToken = (refreshToken) => {
+  if (!refreshToken) {
+    const error = new Error('Refresh token is required');
+    error.status = 400;
+    throw error;
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, ENV.JWT_REFRESH_SECRET);
+    const newAccessToken = generateAccessToken(decoded.userId);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: refreshToken,
+      expiresIn: '1h',
+    };
+  } catch (err) {
+    const error = new Error('Invalid or expired refresh token');
+    error.status = 401;
+    throw error;
+  }
+};
+
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, ENV.JWT_SECRET, { expiresIn: '1h' });
 };

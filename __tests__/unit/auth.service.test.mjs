@@ -56,4 +56,26 @@ describe('Auth Service - Input Validation', () => {
       expect(() => authService.verifyAccessToken('not.a.token')).toThrow('Invalid or expired token');
     });
   });
+
+  describe('refreshAccessToken', () => {
+    it('should throw error if refresh token is missing', () => {
+      expect(() => authService.refreshAccessToken('')).toThrow('Refresh token is required');
+    });
+
+    it('should throw error if refresh token is null', () => {
+      expect(() => authService.refreshAccessToken(null)).toThrow('Refresh token is required');
+    });
+
+    it('should throw error if refresh token is invalid', () => {
+      expect(() => authService.refreshAccessToken('invalid-token')).toThrow(
+        'Invalid or expired refresh token'
+      );
+    });
+
+    it('should throw error for malformed refresh token', () => {
+      expect(() => authService.refreshAccessToken('not.a.token')).toThrow(
+        'Invalid or expired refresh token'
+      );
+    });
+  });
 });

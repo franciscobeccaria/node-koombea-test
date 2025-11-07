@@ -73,6 +73,24 @@ describe('API Integration Tests', () => {
         expect(response.body).toHaveProperty('message');
       });
     });
+
+    describe('POST /auth/refresh', () => {
+      it('should return 400 if refresh token is missing', async () => {
+        const response = await request(app).post('/auth/refresh').send({});
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('message');
+      });
+
+      it('should return 401 if refresh token is invalid', async () => {
+        const response = await request(app).post('/auth/refresh').send({
+          refreshToken: 'invalid-token',
+        });
+
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty('message');
+      });
+    });
   });
 
   describe('Pages Routes - Protected Endpoints', () => {
