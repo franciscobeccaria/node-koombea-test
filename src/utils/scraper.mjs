@@ -33,7 +33,8 @@ export const scrapeUrl = async (url) => {
 
     $('a').each((_, elem) => {
       const href = $(elem).attr('href');
-      const text = $(elem).text()?.trim() || '';
+      // Store inner HTML (portion of html) as per requirements: "in those cases you could save only a portion of the html"
+      const text = $(elem).html()?.trim() || '';
 
       if (!href) return;
 
